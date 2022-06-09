@@ -73,10 +73,11 @@ if nargin < 5
 end
 
 %Add CBIG Matlab functions to path (added by William Drew in NIMLAB July 23, 2021)
-addpath('/data/nimlab/software/CBIG/utilities/matlab/surf')
-addpath('/data/nimlab/software/CBIG/external_packages/SD/SDv1.5.1-svn593/BasicTools')
-addpath('/data/nimlab/software/CBIG/utilities/matlab/transforms')
-addpath('/data/nimlab/software/CBIG/external_packages/SD/SDv1.5.1-svn593/kd_tree')
+cbig_dir = getenv('NIMLAB_CBIG_PATH')
+addpath(cbig_dir + '/utilities/matlab/surf')
+addpath(cbig_dir + '/external_packages/SD/SDv1.5.1-svn593/BasicTools')
+addpath(cbig_dir + '/utilities/matlab/transforms')
+addpath(cbig_dir + '/external_packages/SD/SDv1.5.1-svn593/kd_tree')
 
 %Get FreeSurfer version
 fs_dir = getenv('FREESURFER_HOME');
