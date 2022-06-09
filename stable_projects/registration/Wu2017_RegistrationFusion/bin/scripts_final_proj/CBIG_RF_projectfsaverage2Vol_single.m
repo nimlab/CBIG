@@ -72,6 +72,12 @@ if nargin < 5
     disp('custom mask must be supplied if non-default map is used.');
 end
 
+%Add CBIG Matlab functions to path (added by William Drew in NIMLAB July 23, 2021)
+addpath('/data/nimlab/software/CBIG/utilities/matlab/surf')
+addpath('/data/nimlab/software/CBIG/external_packages/SD/SDv1.5.1-svn593/BasicTools')
+addpath('/data/nimlab/software/CBIG/utilities/matlab/transforms')
+addpath('/data/nimlab/software/CBIG/external_packages/SD/SDv1.5.1-svn593/kd_tree')
+
 %Get FreeSurfer version
 fs_dir = getenv('FREESURFER_HOME');
 addpath(fs_dir);
