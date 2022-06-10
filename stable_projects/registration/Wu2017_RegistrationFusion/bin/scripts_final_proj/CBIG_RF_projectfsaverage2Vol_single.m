@@ -84,8 +84,8 @@ fs_dir = getenv('FREESURFER_HOME');
 addpath(fs_dir);
 fs_stamp_file = fopen(fullfile(fs_dir, 'build-stamp.txt'), 'r');
 fs_stamp = fgetl(fs_stamp_file);
-stamp_start = regexp(fs_stamp, 'v\d.\d');
-fs_ver = fs_stamp(stamp_start+1:stamp_start+3);
+stamp_start = regexp(fs_stamp, '\d\.\d');
+fs_ver = fs_stamp(stamp_start:stamp_start+2);
 fclose(fs_stamp_file);
 
 %Default parameters
