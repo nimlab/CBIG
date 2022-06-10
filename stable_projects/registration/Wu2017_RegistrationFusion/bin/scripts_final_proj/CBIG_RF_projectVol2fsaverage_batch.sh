@@ -7,7 +7,7 @@
 ###########################################
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-fs_ver=`cat $FREESURFER_HOME/build-stamp.txt | sed 's@.*-v@@' | sed 's@-.*@@' | head -c 3`
+fs_ver=`cat $FREESURFER_HOME/build-stamp.txt | sed 's/.*\([0-9]\.[0-9]\.[0-9]\).*/\1/' | head -c 3`
 WARP_DIR=$(dirname "$SCRIPT_DIR")/final_warps_FS$fs_ver
 MAKE_VOLINDEX_SCRIPT=$(dirname "$(dirname "$SCRIPT_DIR")")/registration_fusion/scripts_vol2surf/CBIG_RF_step1_make_xyzIndex_volTemplate.sh
 

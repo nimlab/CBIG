@@ -73,7 +73,7 @@ if nargin < 5
 end
 
 %Add CBIG Matlab functions to path (added by William Drew in NIMLAB July 23, 2021)
-cbig_dir = getenv('NIMLAB_CBIG_PATH')
+cbig_dir = getenv('NIMLAB_CBIG_PATH');
 addpath(cbig_dir + "/utilities/matlab/surf")
 addpath(cbig_dir + "/external_packages/SD/SDv1.5.1-svn593/BasicTools")
 addpath(cbig_dir + "/utilities/matlab/transforms")

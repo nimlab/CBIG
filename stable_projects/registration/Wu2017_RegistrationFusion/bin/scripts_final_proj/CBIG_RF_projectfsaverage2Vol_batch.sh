@@ -7,7 +7,7 @@
 ###########################################
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-fs_ver=`cat $FREESURFER_HOME/build-stamp.txt | sed 's@.*-v@@' | sed 's@-.*@@' | head -c 3`
+fs_ver=`cat $FREESURFER_HOME/build-stamp.txt | sed 's/.*\([0-9]\.[0-9]\.[0-9]\).*/\1/' | head -c 3`
 WARP_DIR=$(dirname "$SCRIPT_DIR")/final_warps_FS$fs_ver
 DEFAULT_MASK=$(dirname "$SCRIPT_DIR")/liberal_cortex_masks_FS$fs_ver/FSL_MNI152_FS4.5.0_cortex_estimate.nii.gz
 
