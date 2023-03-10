@@ -136,9 +136,9 @@ echo "DONE!" >> $LF
 # Read in echo number from config file if multiecho step is included in pipeline
 # Otherwise, set echo_number to be 1 for single echo case
 ##########################################
-set ME_step = `grep CBIG_preproc_multiecho_denoise $config`
+# set ME_step = `grep CBIG_preproc_multiecho_denoise $config`
 # We compute the number of echoes by counting the comma delimiter of echo times
-set echo_number = `echo "$ME_step" | awk -F "," '{print NF}'`
+set echo_number = `echo "$met_val" | awk -F "," '{print NF}'`
 # If echo number is 0, multiecho step is not included. Hence echo number is set to be 1
 if ( $echo_number == 0 ) then 
 	set echo_number = 1
