@@ -60,13 +60,20 @@ if nargin < 1
     return
 end
 
+%Add CBIG Matlab functions to path (added by William Drew in NIMLAB July 23, 2021)
+cbig_dir = getenv('NIMLAB_CBIG_PATH');
+addpath(cbig_dir + "/utilities/matlab/surf")
+addpath(cbig_dir + "/external_packages/SD/SDv1.5.1-svn593/BasicTools")
+addpath(cbig_dir + "/utilities/matlab/transforms")
+
+
 %Get FreeSurfer version
 fs_dir = getenv('FREESURFER_HOME');
 addpath(fs_dir);
 fs_stamp_file = fopen(fullfile(fs_dir, 'build-stamp.txt'), 'r');
 fs_stamp = fgetl(fs_stamp_file);
-stamp_start = regexp(fs_stamp, 'v\d.\d');
-fs_ver = fs_stamp(stamp_start+1:stamp_start+3);
+stamp_start = regexp(fs_stamp, '\d\.\d');
+fs_ver = fs_stamp(stamp_start:stamp_start+2);
 fclose(fs_stamp_file);
 
 %Default parameters
