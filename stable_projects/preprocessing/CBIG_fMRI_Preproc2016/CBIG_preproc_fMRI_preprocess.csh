@@ -156,7 +156,7 @@ if ( $echo_number > 1 ) then
 		rm $package_list
 	endif
 	touch $package_list
-	conda list >> $package_list
+	python -m pip list >> $package_list
 	set package_check = `grep tedana $package_list`
 	if ( $#package_check == 0 ) then 
 		echo "[ERROR]: Package 'Tedana' is missing and it is required for multiecho denoising!" >> $LF
@@ -920,7 +920,9 @@ The intermediate files from volumetric projection step will not be removed." >> 
 		set cmd = "$root_dir/CBIG_preproc_native2mni.csh -s $subject -d $output_dir -anat_s $anat -anat_d "
 		set cmd = "$cmd $SUBJECTS_DIR -bld '$zpdbold' -BOLD_stem $BOLD_stem -REG_stem $REG_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null 	
+		# eval $cmd >&  /dev/null 
+		echo "Starting nativ2mni" >> $LF
+		eval $cmd >> $LF
 		
 		#update stem
 		set sm = ( `echo $curr_flag | awk -F "-sm " '{print $2}' | awk -F " " '{print $1}'` )
