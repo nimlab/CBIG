@@ -21,6 +21,7 @@
 #volfolder: store all volume results (/vol)
 #bold: all runs under /bold folder
 
+echo "ENTERING NATIVE2MNI"
 set VERSION = '$Id: CBIG_preproc_native2mni.csh v 1.0 2016/05/30'
 
 set subject = ""      # subject ID
@@ -44,7 +45,7 @@ set MNI_ref_id = "FSL_MNI152_FS4.5.0"
 # Print help or version
 set n = `echo $argv | grep -e -help | wc -l`
 
-nice +5
+nice +19
 
 # if there is -help option 
 if( $n != 0 ) then
