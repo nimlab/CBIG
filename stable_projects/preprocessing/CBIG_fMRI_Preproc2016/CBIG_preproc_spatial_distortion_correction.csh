@@ -519,9 +519,9 @@ foreach curr_bold ($zpdbold)
 	mv "$boldfile"_"$ref"* warping/
 
 	#clean up intermediate files
-	if ( $nocleanup != 1 ) then
-		rm -r warping
-	endif
+	# if ( $nocleanup != 1 ) then
+	# 	rm -r warping
+	# endif
 end
 
 #########################
