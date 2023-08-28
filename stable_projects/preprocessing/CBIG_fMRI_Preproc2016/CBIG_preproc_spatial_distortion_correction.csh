@@ -23,6 +23,7 @@
 #############################################
 # Author: Shaoshi Zhang, Xingyu Lyu
 # Written by CBIG under MIT license: https://github.com/ThomasYeoLab/CBIG/blob/master/LICENSE.md
+# Modified by Stephan Palm
 
 set VERSION = '$Id: CBIG_preproc_spatial_distortion_correction.csh, v 1.0 2018/11/1 $'
 
@@ -72,6 +73,7 @@ set sig_threshold = 0.9     #signal loss threshold. Default is 0.9
 set fmri_bet = 0.2          #BET fractional intensity threshold for fMRI image. Default is 0.2
 set mag_bet = 0.3           #BET fractional intensity threshold for magnitude image. Default is 0.3
 set echo_number = 1  	    #number of echos default to be 1
+set force = 0;   			# Default if file exist, then skip this step.
 set echo_stem = ""
 
 goto parse_args;
@@ -124,6 +126,7 @@ cd $sdc
 # When fieldmaps are in magnitude and phasediff
 #############################################
 if ( $fpm == "mag+phasediff" ) then
+	echo "Running mag+phasediff" |& tee -a $LF
      if ( $mag == "" ) then
           echo "ERROR: fieldmap magnitude image not specified. Exit." |& tee -a $LF
           exit 1
@@ -192,66 +195,76 @@ if ( $fpm == "mag+phasediff" ) then
 # When two fieldmaps have opposite phase encoding directions
 #############################################
 else if ( $fpm == "oppo_PED" ) then
-	if ( $j_plus == "" ) then
-		echo "ERROR: j+ image not specified. Exit."|& tee -a $LF
-		exit 1
-	endif
-	if ( $j_minus == "" ) then
-		echo "ERROR: j- image not specified. Exit."|& tee -a $LF
-		exit 1
-	endif
-	if ( $j_minus_trt == "" || $j_plus_trt == "" ) then
-		echo "ERROR: Total readout time not specified. Exit. "|& tee -a $LF
-		exit 1
-	endif
-	#if user does not specify topup config file, use default config file
-	if ( $topup_config == "" ) then
-		echo "[WARNING] FSL TOPUP configuration file not specified. Use default topup config file."|& tee -a $LF
-		set topup_config = "$CBIG_FSLDIR"/src/topup/flirtsch/b02b0.cnf
-	endif
+	if ( (! -e  "fmap_mag_brain.nii.gz") || ($force == 1) ) then
+		if ( $j_plus == "" ) then
+			echo "ERROR: j+ image not specified. Exit."|& tee -a $LF
+			exit 1
+		endif
+		if ( $j_minus == "" ) then
+			echo "ERROR: j- image not specified. Exit."|& tee -a $LF
+			exit 1
+		endif
+		if ( $j_minus_trt == "" || $j_plus_trt == "" ) then
+			echo "ERROR: Total readout time not specified. Exit. "|& tee -a $LF
+			exit 1
+		endif
+		#if user does not specify topup config file, use default config file
+		if ( $topup_config == "" ) then
+			echo "[WARNING] FSL TOPUP configuration file not specified. Use default topup config file."|& tee -a $LF
+			set topup_config = "$CBIG_FSLDIR"/src/topup/flirtsch/b02b0.cnf
+		endif
 
-	#create datain.txt
-	set datain = "$sdc"/datain.txt
-	if ( -e $datain ) then
-	    rm $datain 
+		#create datain.txt
+		set datain = "$sdc"/datain.txt
+		if ( -e $datain ) then
+			rm $datain 
+		endif
+		touch $datain
+		echo "0 -1 0 $j_minus_trt" >> $datain	#AP/j-
+		echo "0 1 0 $j_plus_trt" >> $datain	#PA/j+
+		echo "[SDC] datain.txt successfully created." |& tee -a $LF
+
+		#merge two opposite PED images (j- followed by j+)
+		set cmd = ( fslmerge -t AP_PA.nii.gz "$j_minus" "$j_plus" )
+		echo $cmd |& tee -a $LF
+		eval $cmd
+		#run TOPUP
+		set cmd = ( topup --imain=AP_PA.nii.gz --datain="$datain" --config="$topup_config" --fout=fmap_phase_hz.nii.gz  )
+		set cmd = ($cmd --iout=fmap_unwarped.nii.gz )
+		echo $cmd |& tee -a $LF
+		eval $cmd
+		#convert the unit to rad/s
+		set cmd = ( fslmaths fmap_phase_hz -mul 6.28 fmap_phase_rad_sec )
+		echo $cmd |& tee -a $LF
+		eval $cmd
+		set phase = fmap_phase_rad_sec
+		#average across magnitude images and brain extraction
+		set cmd = ( fslmaths fmap_unwarped -Tmean fmap_mag )
+		echo $cmd |& tee -a $LF
+		eval $cmd
+		set cmd = ( bet fmap_mag fmap_mag_brain -f $mag_bet -m -R )
+		echo $cmd |& tee -a $LF
+		eval $cmd
+		set mag = fmap_mag_brain
+		set mag_brain_mask = fmap_mag_brain_mask
+
+		echo "Fieldmap magnitude image 		$mag" |& tee -a $LF
+		echo "Fieldmap phase image	 		$phase" |& tee -a $LF
+		echo "Fieldmap magnitude brain mask	$mag_brain_mask" |& tee -a $LF
+	else
+		set mag = fmap_mag_brain
+		set mag_brain_mask = fmap_mag_brain_mask
+		set phase = fmap_phase_rad_sec
+		
+		echo "Fieldmap magnitude image 		$mag" |& tee -a $LF
+		echo "Fieldmap phase image	 		$phase" |& tee -a $LF
+		echo "Fieldmap magnitude brain mask	$mag_brain_mask" |& tee -a $LF
+		echo "=======================Fieldmap processing done already done!=======================" |& tee -a $LF
 	endif
-	touch $datain
-	echo "0 -1 0 $j_minus_trt" >> $datain	#AP/j-
-	echo "0 1 0 $j_plus_trt" >> $datain	#PA/j+
-	echo "[SDC] datain.txt successfully created." |& tee -a $LF
-
-	#merge two opposite PED images (j- followed by j+)
-	set cmd = ( fslmerge -t AP_PA.nii.gz "$j_minus" "$j_plus" )
-	echo $cmd |& tee -a $LF
-	eval $cmd
-	#run TOPUP
-	set cmd = ( topup --imain=AP_PA.nii.gz --datain="$datain" --config="$topup_config" --fout=fmap_phase_hz.nii.gz  )
-	set cmd = ($cmd --iout=fmap_unwarped.nii.gz )
-	echo $cmd |& tee -a $LF
-	eval $cmd
-	#convert the unit to rad/s
-	set cmd = ( fslmaths fmap_phase_hz -mul 6.28 fmap_phase_rad_sec )
-	echo $cmd |& tee -a $LF
-	eval $cmd
-	set phase = fmap_phase_rad_sec
-	#average across magnitude images and brain extraction
-	set cmd = ( fslmaths fmap_unwarped -Tmean fmap_mag )
-	echo $cmd |& tee -a $LF
-	eval $cmd
-	set cmd = ( bet fmap_mag fmap_mag_brain -f $mag_bet -m -R )
-	echo $cmd |& tee -a $LF
-	eval $cmd
-	set mag = fmap_mag_brain
-	set mag_brain_mask = fmap_mag_brain_mask
-
-	echo "Fieldmap magnitude image 		$mag" |& tee -a $LF
-	echo "Fieldmap phase image	 		$phase" |& tee -a $LF
-	echo "Fieldmap magnitude brain mask	$mag_brain_mask" |& tee -a $LF
-
 # If the fieldmap proceesing method is neither 'mag+phasediff' nor 'oppo_PED', exit with error
 else 
 	echo "ERROR: Unknown fieldmap processing method. (fieldmap processing method should be either 'mag+phasediff' \
-	or 'oppo_PED'). Exit."|& tee -a $LF
+	or 'oppo_PED'). Exit." |& tee -a $LF
 	exit 1
 endif
 
@@ -519,9 +532,9 @@ foreach curr_bold ($zpdbold)
 	mv "$boldfile"_"$ref"* warping/
 
 	#clean up intermediate files
-	if ( $nocleanup != 1 ) then
-		rm -r warping
-	endif
+	# if ( $nocleanup != 1 ) then
+	# 	rm -r warping
+	# endif
 end
 
 #########################
@@ -681,6 +694,10 @@ while( $#argv != 0 )
                         echo $cmdline
                         exit 1
                         breaksw
+		#update results, if exist then do not generate
+		case "-force":
+			set force = 1;
+			breaksw
         endsw
 end
 goto parse_args_return;
@@ -808,6 +825,7 @@ OPTIONAL ARGUMENTS:
 	-mag_bet <mag_bet>					: BET threshold for fieldmap magnitude image, default is 0.3
 	-echo_number <echo_number>			: number of echoes. For single echo data, default is 1.
     -nocleanup                          : use this flag to keep all intermediate files
+	-force                     			: force-update results. Existing results will be overwritten
 	-help								: help
 	-version							: version
 

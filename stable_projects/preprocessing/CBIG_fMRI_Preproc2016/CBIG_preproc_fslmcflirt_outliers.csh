@@ -21,6 +21,7 @@
 #############################################
 # Author: RU(BY) KONG, XINGYU LYU
 # Written by CBIG under MIT license: https://github.com/ThomasYeoLab/CBIG/blob/master/LICENSE.md
+# Modified by Stephan Palm
 
 set VERSION = '$Id: CBIG_preproc_fslmcflirt_outliers.csh, v 1.0 2016/06/09 $'
 
@@ -213,12 +214,18 @@ foreach curr_bold ($zpdbold)
 	set mc_abs_rms_file = ${boldfile}_mc_abs.rms
 	set mc_rel_rms_file = ${boldfile}_mc_rel.rms
 	set outname_prefix = ${boldfile}_mc
-	
-	set cmd = ( $MATLAB -nodesktop -nodisplay -nosplash -r '"' 'addpath(genpath('"'"${root_dir}'/utilities'"'"'))'; \
-		CBIG_preproc_plot_mcflirt_par $mc_par_file $mc_abs_rms_file $mc_rel_rms_file $qc $outname_prefix; exit; '"' );
-	echo $cmd |& tee -a $LF
-	eval $cmd |& tee -a $LF
-	
+
+	if ( (! -e $qc"/"$outname_prefix"_rot_trans_disp.png") || ($force == 1) ) then
+		set cmd = ( $MATLAB -nodesktop -nodisplay -nosplash -r \
+			'"' 'addpath(genpath('"'"${root_dir}'/utilities'"'"'))'; \
+			CBIG_preproc_plot_mcflirt_par $mc_par_file $mc_abs_rms_file $mc_rel_rms_file $qc $outname_prefix; \
+			exit; '"' );
+		echo $cmd |& tee -a $LF
+		eval $cmd |& tee -a $LF
+	else
+		echo "=======================Plot mcflirt parameters already done!=======================" |& tee -a $LF
+	endif
+
 	popd
 end
 echo "=========================== Plot mcflirt parameters done =============================" |& tee -a $LF
@@ -296,8 +303,8 @@ if ( $nocleanup != 1 ) then
 	foreach curr_bold ($zpdbold)
 		pushd $curr_bold
 		set boldfile = $subject"_bld"$curr_bold$echo_stem$BOLD_stem
-		set mergefile = $boldfile"_merge.nii.gz"
-		rm $mergefile
+#		set mergefile = $boldfile"_merge.nii.gz"
+#		rm $mergefile
 		
 		popd
 	end
@@ -344,14 +351,34 @@ foreach curr_bold ($zpdbold)
 	pushd $curr_bold
 	set i = 2
 	while ( $i <= $echo_number)
-		set xfm_dir="$subject"_bld"$curr_bold"_e1"$BOLD_stem"_mc.mat
-		set cmd = (applyxfm4D "$subject"_bld"$curr_bold"_e$i"$BOLD_stem".nii.gz) 
-		set cmd = ( $cmd "$subject"_bld"$curr_bold"_e$i"$BOLD_stem".nii.gz)
-		set cmd = ( $cmd "$subject"_bld"$curr_bold"_e$i"$BOLD_stem"_mc.nii.gz ${xfm_dir} -fourdigit)
-		echo $cmd |& tee -a $LF
-		eval $cmd
+		if ( (! -e $subject"_bld"$curr_bold"_e"${i}${BOLD_stem}"_mc.nii.gz") || ($force == 1) ) then
+			set xfm_dir="$subject"_bld"$curr_bold"_e1"$BOLD_stem"_mc.mat
+			set cmd = (applyxfm4D "$subject"_bld"$curr_bold"_e$i"$BOLD_stem".nii.gz) 
+			set cmd = ( $cmd "$subject"_bld"$curr_bold"_e$i"$BOLD_stem".nii.gz)
+			set cmd = ( $cmd "$subject"_bld"$curr_bold"_e$i"$BOLD_stem"_mc.nii.gz ${xfm_dir} -fourdigit)
+			echo $cmd |& tee -a $LF
+			eval $cmd
+		else
+			echo "==============transformation of run $curr_bold and echo $i already done!===============" |& tee -a $LF	
+		endif
 		@ i++
 	end
+	# seq 2 $echo_number | parallel -j 3 'set i={}; set subject='"$subject"'; set curr_bold='"$curr_bold"'; \
+	# set BOLD_stem='"$BOLD_stem"'; set force='"$force"'; set LF='"$LF"'; \
+	# if ( ! -e ${subject}_bld${curr_bold}_e${i}${BOLD_stem}_mc.nii.gz || $force == 1 ) then; \
+	# 	set xfm_dir="${subject}_bld${curr_bold}_e1${BOLD_stem}_mc.mat"; \
+	# 	set cmd="applyxfm4D ${subject}_bld${curr_bold}_e${i}${BOLD_stem}.nii.gz \
+	# 						${subject}_bld${curr_bold}_e${i}${BOLD_stem}.nii.gz \
+	#						${subject}_bld${curr_bold}_e${i}${BOLD_stem}_mc.nii.gz 
+	# 						${xfm_dir} -fourdigit"; \
+	# 	echo $cmd |& tee -a $LF; \
+	# 	eval $cmd; \
+	# else; \
+	# 	echo "=============transformation of run $curr_bold and echo $i already done!===============" |& tee -a $LF; \
+	# endif'
+
+
+
 	# remove MAT_0000 for spatial distortion correction
 	echo "=========remove MAT_0000 and generate transformation matrix========="
 	set boldfile = $subject"_bld"$curr_bold$echo_stem$BOLD_stem
