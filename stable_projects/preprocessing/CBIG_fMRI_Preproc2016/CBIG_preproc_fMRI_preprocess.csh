@@ -14,6 +14,7 @@
 # 4) Preprocessed results will be saved in output directory
 ##########################################
 # Written by CBIG under MIT license: https://github.com/ThomasYeoLab/CBIG/blob/master/LICENSE.md
+# Modified by Stephan Palm
 
 set VERSION = '$Id: CBIG_preproc_fMRI_preprocess.csh, v 1.0 2016/06/09 $'
 
@@ -276,7 +277,7 @@ foreach step ( "`cat $config`" )
 		set cmd = "$cmd	-echo_number $echo_number"
 		set cmd = "$cmd $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null
+		eval $cmd
 		
 		#update stem
 		if ( $inputflag != 1 ) then
@@ -326,7 +327,7 @@ foreach step ( "`cat $config`" )
 		set cmd = "$cmd -echo_number $echo_number -BOLD_stem "
 		set cmd = "$cmd $BOLD_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null 	
+		eval $cmd 	
 		
 		#update stem	
 		set curr_stem = "stc"
@@ -379,7 +380,7 @@ The intermediate files from motion correction step will not be removed." >> $LF
 		set cmd = "$cmd -echo_number $echo_number"
 		set cmd = "$cmd -BOLD_stem $BOLD_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null
+		eval $cmd
 		
 		#update stem 	
 		set curr_stem = "mc"
@@ -474,7 +475,7 @@ The intermediate files from spatial distortion correction step will not be remov
 			set cmd = "$cmd -echo_number $echo_number"
 			set cmd = "$cmd -BOLD_stem $mc_stem $curr_flag"
 			echo "[$curr_step]: $cmd" >> $LF
-			eval $cmd >& /dev/null
+			eval $cmd
 
 			# Spatial Distortion Correction QC: run BBR on BOLD image that is not distortion corrected
 
@@ -493,20 +494,20 @@ The intermediate files from spatial distortion correction step will not be remov
 				set cmd = "$cmd -d $output_dir -bld '$zpdbold' -BOLD_stem ${mc_stem}_mc" 
 				set cmd = "$cmd -echo_number $echo_number"
 				set cmd = "$cmd $MEICA_flag"
-				eval $cmd >& /dev/null 
+				eval $cmd
 				set cmd = "$root_dir/CBIG_preproc_bbregister.csh -s $subject -d $output_dir -anat_s $anat -anat_d $anat_dir "
 				set cmd = "$cmd -bld '$zpdbold' -BOLD_stem ${mc_stem}_mc_me "
-				eval $cmd >& /dev/null 
+				eval $cmd 
 			else
 				set cmd = "$root_dir/CBIG_preproc_bbregister.csh -s $subject -d $output_dir -anat_s $anat -anat_d $anat_dir "
 				set cmd = "$cmd -bld '$zpdbold' -BOLD_stem ${mc_stem}_mc "
-				eval $cmd >& /dev/null 
+				eval $cmd
 			endif
 
 			# Extract the BBR cost without distortion correction
 			set cmd = "mv $output_dir/$subject/qc/CBIG_preproc_bbregister_intra_sub_reg.cost"
 			set cmd = "$cmd $output_dir/$subject/qc_backup/CBIG_preproc_bbregister_intra_sub_reg_no_sdc.cost"
-			eval $cmd >& /dev/null 	
+			eval $cmd	
 
 			# clean up temporary directories
 			rm -r -f $output_dir/$subject/bold
@@ -567,7 +568,7 @@ The intermediate files from multi-echo denoising step will not be removed." >> $
 		set cmd = "$cmd -echo_number $echo_number"
 		set cmd = "$cmd $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null	
+		eval $cmd	
 		
 		#update stem
 		set curr_stem = "me"
@@ -594,7 +595,7 @@ can not be found" >> $LF
 		set cmd = "$root_dir/CBIG_preproc_bbregister.csh -s $subject -d $output_dir -anat_s $anat -anat_d $anat_dir "
 		set cmd = "$cmd -bld '$zpdbold' -BOLD_stem $BOLD_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null	
+		eval $cmd	
 		
 		#update stem
 		set curr_stem = "reg"
@@ -626,13 +627,13 @@ than without distortion correction ($bbr_cost_without_sdc)." >> $LF
 			set cmd = "paste $output_dir/$subject/qc/CBIG_preproc_bbregister_intra_sub_reg.cost"
 			set cmd = "$cmd $output_dir/$subject/qc/CBIG_preproc_bbregister_intra_sub_reg_no_sdc.cost >"
 			set cmd = "$cmd $output_dir/$subject/qc/CBIG_preproc_bbregister_intra_sub_reg_sdc.cost"
-			eval $cmd >& /dev/null
+			eval $cmd
 
 			rm $output_dir/$subject/qc/CBIG_preproc_bbregister_intra_sub_reg_no_sdc.cost
 			rm $output_dir/$subject/qc/CBIG_preproc_bbregister_intra_sub_reg.cost
 			set cmd = "mv $output_dir/$subject/qc/CBIG_preproc_bbregister_intra_sub_reg_sdc.cost"
 			set cmd = "$cmd $output_dir/$subject/qc/CBIG_preproc_bbregister_intra_sub_reg.cost"
-			eval $cmd >& /dev/null
+			eval $cmd
 
 		endif
 		
@@ -655,7 +656,7 @@ can not be found" >> $LF
 	    set cmd = "$root_dir/CBIG_preproc_despiking.csh -s $subject -d $output_dir -bld '$zpdbold' -BOLD_stem "
 	    set cmd = "$cmd $BOLD_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null 	
+		eval $cmd 	
 		
 		#update stem	
 		set curr_stem = "dspk"
@@ -694,7 +695,7 @@ The intermediate censoring interpolation volume will not be removed." >> $LF
 		set cmd = "$cmd -bld '$zpdbold' -BOLD_stem $BOLD_stem -REG_stem $REG_stem -OUTLIER_stem $OUTLIER_stem "
 		set cmd = "$cmd $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null 
+		eval $cmd 
 		
 		#update stem
 		set FD_th = (`echo $OUTLIER_stem | awk -F "FDRMS" '{print $2}' | awk -F "_" '{print $1}'`)
@@ -729,7 +730,7 @@ can not be found" >> $LF
 		set cmd = "$root_dir/CBIG_preproc_bandpass_fft.csh -s $subject -d $output_dir -bld '$zpdbold' -BOLD_stem " 
 		set cmd = "$cmd $BOLD_stem -OUTLIER_stem $OUTLIER_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null 	
+		eval $cmd 	
 		
 		#update stem
 		set low_f = ( `echo $curr_flag | awk -F "-low_f" '{print $2}' | awk -F " " '{print $1}'` )
@@ -769,7 +770,7 @@ can not be found" >> $LF
 		set cmd = "$cmd $SUBJECTS_DIR -bld '$zpdbold' -BOLD_stem $BOLD_stem -REG_stem $REG_stem -MASK_stem $BOLD_stem "
 		set cmd = "$cmd -OUTLIER_stem $OUTLIER_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null 
+		eval $cmd 
 		
 		#update stem
 		set censor_flag = ( `echo $curr_flag | grep "-censor"` )
@@ -813,7 +814,7 @@ The intermediate files from plotting QC greyplot will not be removed." >> $LF
 		set cmd = "$cmd $SUBJECTS_DIR -bld '$zpdbold' -BOLD_stem $BOLD_stem -REG_stem $REG_stem -MC_stem $mc_stem "
 		set cmd = "$cmd -echo_number $echo_number $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null
+		eval $cmd
 		
 		foreach curr_bold ($zpdbold)
 			if ( ! -e $output_dir/$subject/qc/$subject"_bld"$curr_bold$BOLD_stem"_greyplot.png" ) then
@@ -834,7 +835,7 @@ can not be found" >> $LF
 		set cmd = "$root_dir/CBIG_preproc_native2fsaverage.csh -s $subject -d $output_dir -anat_s $anat -anat_d "
 		set cmd = "$cmd $SUBJECTS_DIR -bld '$zpdbold' -BOLD_stem $BOLD_stem -REG_stem $REG_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null
+		eval $cmd
 		
 		#update stem
 		if ( $inputflag != 1 ) then
@@ -889,7 +890,7 @@ The intermediate files from FC computation step will not be removed." >> $LF
 		set cmd = "$root_dir/CBIG_preproc_FCmetrics_wrapper.csh -s $subject -d $output_dir -bld '$zpdbold' "
 		set cmd = "$cmd -BOLD_stem $BOLD_stem -SURF_stem $FC_SURF_stem -OUTLIER_stem $OUTLIER_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >& /dev/null
+		eval $cmd
 		
 		# update stem & check existance of output
 		if ( "$curr_flag" =~ *"-Pearson_r"* ) then
@@ -920,7 +921,7 @@ The intermediate files from volumetric projection step will not be removed." >> 
 		set cmd = "$root_dir/CBIG_preproc_native2mni.csh -s $subject -d $output_dir -anat_s $anat -anat_d "
 		set cmd = "$cmd $SUBJECTS_DIR -bld '$zpdbold' -BOLD_stem $BOLD_stem -REG_stem $REG_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		# eval $cmd >&  /dev/null 
+		# eval $cmd 
 		echo "Starting nativ2mni" >> $LF
 		eval $cmd >> $LF
 		
@@ -969,7 +970,7 @@ The intermediate files from volumetric projection step will not be removed." >> 
 		set cmd = "$root_dir/CBIG_preproc_native2mni_ants.csh -s $subject -d $output_dir -anat_s $anat -anat_d"
 		set cmd = "$cmd $SUBJECTS_DIR -bld '$zpdbold' -BOLD_stem $BOLD_stem -REG_stem $REG_stem $curr_flag"
 		echo "[$curr_step]: $cmd" >> $LF
-		eval $cmd >&  /dev/null 	
+		eval $cmd 	
 		
 		#update stem
 		set sm = ( `echo $curr_flag | awk -F "-sm " '{print $2}' | awk -F " " '{print $1}'` )
