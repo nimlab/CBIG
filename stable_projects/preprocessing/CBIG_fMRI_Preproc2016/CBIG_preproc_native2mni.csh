@@ -122,7 +122,8 @@ else
 	set cmd = (CBIG_vol2vol_m3z.csh -src-id $anat_s -src-dir $anat_dir -targ-id $MNI_ref_id -targ-dir $MNI_ref_dir \
 	-in $input -out $output -no-cleanup)
 	echo $cmd |& tee -a $LF
-	$cmd |& tee -a $LF
+	#$cmd |& tee -a $LF
+	$cmd
 	if(-e $output) then
 		echo "========== Projection of T1 to MNI152 1mm space finished ==========" |& tee -a $LF
 	else

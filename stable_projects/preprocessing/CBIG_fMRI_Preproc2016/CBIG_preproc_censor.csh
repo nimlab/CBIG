@@ -249,10 +249,19 @@ foreach runfolder ($bold)
 	set qc_out_dir = "${sub_dir}/${subject}/qc/censor_interp"
 	mkdir -p $qc_out_dir
 	if ( -e ${censor_inter} && -e ${censor_final} ) then
-		$MATLAB -nodesktop -nodisplay -nosplash -r "addpath(fullfile('${root_dir}', 'utilities')); \
-		CBIG_preproc_CensorQC('${qc_out_dir}', '$subject', '$runfolder', '${BOLD}.nii.gz', '${censor_inter}', \
-		'${censor_final}', '${sub_dir}/${subject}/bold/mask/${subject}.brainmask.bin.nii.gz', \
-		'${sub_dir}/${subject}/bold/mask/${subject}.func.gm.nii.gz', '${outlier_file}'); exit" |& tee -a $LF
+		set cmd = ( $MATLAB -nojvm -nodesktop -nodisplay -nosplash -r)
+		set cmd = ($cmd '"''addpath(fullfile('"'"${root_dir}"'"',' "'"utilities"'"'))';)
+		set cmd = ($cmd 'CBIG_preproc_CensorQC('"'"${qc_out_dir}"'"',' "'"$$subject"'"',' "'"$runfolder"'"',' )
+		set cmd = ($cmd "'"${BOLD}.nii.gz"'"',' "'"${censor_inter}"'"',' "'"${censor_final}"'"',' )
+		set cmd = ($cmd "'"${sub_dir}/${subject}/bold/mask/${subject}.brainmask.bin.nii.gz"'"',' )
+		set cmd = ($cmd "'"${sub_dir}/${subject}/bold/mask/${subject}.func.gm.nii.gz"'"',' )
+		set cmd = ($cmd "'"${outlier_file}"'"')'; exit '"' )
+		echo $cmd |& tee -a $LF
+		eval $cmd |& tee -a $LF
+		# $MATLAB -nodesktop -nodisplay -nosplash -r "addpath(fullfile('${root_dir}', 'utilities')); \
+		# CBIG_preproc_CensorQC('${qc_out_dir}', '$subject', '$runfolder', '${BOLD}.nii.gz', '${censor_inter}', \
+		# '${censor_final}', '${sub_dir}/${subject}/bold/mask/${subject}.brainmask.bin.nii.gz', \
+		# '${sub_dir}/${subject}/bold/mask/${subject}.func.gm.nii.gz', '${outlier_file}'); exit" |& tee -a $LF
 	else
 		echo "ERROR: One or two of the intermediate censoring result and final censoring result do not exist. \
 		Censoring QC cannot execute." |& tee -a $LF
