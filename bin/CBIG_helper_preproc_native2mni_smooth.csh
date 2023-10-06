@@ -40,7 +40,7 @@ else
         eval $cmd
 
         set cmd = (fslmaths $tmp1 -div $tmp2 $input_masksmoothed)
-            echo $cmd |& tee -a $LF
+        echo $cmd |& tee -a $LF
         eval $cmd
 
                     #4. smooth outside of the mask, but inside the brain			    

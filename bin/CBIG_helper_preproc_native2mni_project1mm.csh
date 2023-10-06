@@ -26,7 +26,7 @@ else
     set cmd = (CBIG_vol2vol_m3z.csh -src-id $anat_s -src-dir $anat_dir -targ-id $MNI_ref_id \
     -targ-dir $MNI_ref_dir -in $input -out $output -reg $regfile -no-cleanup)
     echo $cmd |& tee -a $LF
-    eval $cmd |& tee -a $LF
+    eval $cmd
     if(-e $output) then
         echo "    [native2mni]: projection to $output finished." |& tee -a $LF
     else
